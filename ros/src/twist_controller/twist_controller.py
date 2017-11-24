@@ -9,7 +9,7 @@ import math
 GAS_DENSITY = 2.858
 ONE_MPH = 0.44704
 WEIGHT_PERSON = 75
-MIN_SPEED = 1.0 * ONE_MPH
+MIN_SPEED = 0.5 * ONE_MPH
 
 VELOCITY_Kp = 2.0
 VELOCITY_Ki = 0.0
@@ -64,13 +64,13 @@ class Controller(object):
 
         velocity_error = twist_cmd.twist.linear.x - current_velocity.twist.linear.x
 
-        if abs(twist_cmd.twist.linear.x) < 1.0 * ONE_MPH:
-            self.velocity_pid_.reset()
+        if abs(twist_cmd.twist.linear.x) < MIN_SPEED:
+            self.velocity_pid_.reset()  #Not creep
 
         accel_cmd = self.velocity_pid_.step(velocity_error, control_period)
 
         if twist_cmd.twist.linear.x <= 1e-2:
-            accel_cmd = min(accel_cmd, -530 / vehicle_mass / self.wheel_radius)
+            accel_cmd = min(accel_cmd, -530 / vehicle_mass / self.wheel_radius) #not creep
         elif twist_cmd.twist.linear.x < MIN_SPEED:
             twist_cmd.twist.angular.z = twist_cmd.twist.angular.z * MIN_SPEED / twist_cmd.twist.linear.x
             twist_cmd.twist.linear.x = MIN_SPEED
