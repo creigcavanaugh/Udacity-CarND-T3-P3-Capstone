@@ -127,15 +127,15 @@ class DBWNode(object):
                 self.time_last_cmd = current_time
                 continue
 
+            # Due to race conditions, we need to store the waypoints temporary
+            temp_waypoints = copy.deepcopy(self.waypoints)
             # no need to test time_last_cmd since it is assigned together with twist_cmd
-            if self.waypoints != None and self.twist_cmd != None and self.current_velocity != None and self.dbw_enable_status == True:
+            if temp_waypoints != None and self.twist_cmd != None and self.current_velocity != None:
 
                 # Create lists of x and y values of the next waypoints to fit a polynomial
                 x = []
                 y = []
                 i = 0
-                # Due to race conditions, we need to store the waypoints temporary
-                temp_waypoints = copy.deepcopy(self.waypoints)
                 while len(x) < 20 and i < len(temp_waypoints.waypoints):
                     # Transform waypoint to car coordinates
                     temp_waypoints.waypoints[i].pose.header.frame_id = temp_waypoints.header.frame_id
@@ -162,9 +162,10 @@ class DBWNode(object):
                 self.tot_cte += abs(cte)
                 self.cte_counter += 1
                 rospy.loginfo('avg_cte: %s', self.tot_cte / self.cte_counter)
-                throttle_val, brake_val, steering_val = self.controller.control(current_time, self.time_last_cmd,
+                throttle_val, brake_val, steering_val = self.controller.control(current_time,
+                                                                                self.time_last_cmd,
                                                                                 float(1.0 / UPDATE_RATE),
-                                                                                self.twist_cmd, \
+                                                                                self.twist_cmd,
                                                                                 self.current_velocity,
                                                                                 self.dbw_enable_status,
                                                                                 self.brake_deadband, cte)

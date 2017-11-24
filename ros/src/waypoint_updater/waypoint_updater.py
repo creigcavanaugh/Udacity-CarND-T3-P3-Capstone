@@ -111,9 +111,10 @@ class WaypointUpdater(object):
 
         transformed_light_point = None
 
+        rospy.loginfo_throttle(1,'Current waypoint: ' + str(self.prev_first_wpt_index) + ' of ' + str(len(self.waypoints.waypoints)) + ' ' + str(self.pose.pose.position.x) )
+
         if first_wpt_index == -1:
-            rospy.logwarn(
-                'WaypointUpdater::waypoints_cb - No waypoints ahead of ego were found... seems that the car went off course')
+            rospy.logwarn('WaypointUpdater::waypoints_cb - No waypoints ahead of ego were found... seems that the car went off course')
         else:
             # transform fast avoiding wait cycles
             # Transform first waypoint to car coordinates
@@ -198,6 +199,7 @@ class WaypointUpdater(object):
         self.velocity = msg.twist.linear.x
 
     def waypoints_cb(self, waypoints):
+        rospy.logwarn('waypoints: first/last wp: '+str(waypoints.waypoints[0].pose.pose.position) + '\n' + str(waypoints.waypoints[-1].pose.pose.position)  )
         self.waypoints = waypoints
 
     def traffic_cb(self, msg):
