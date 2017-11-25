@@ -3,7 +3,14 @@
 *Team*: Ron Sostaric <ronsos@gmail.com>, Kelvin Lu <kelvin.lu.au@gmail.com>, Creig Cavanaugh <creigc@gmail.com>, Patrick Carney <patrick.s.carney@gmail.com>
 
 This is the project repo for the final project of the Udacity Self-Driving Car Nanodegree: Programming a Real Self-Driving Car. For more information about the project, see the project introduction [here](https://classroom.udacity.com/nanodegrees/nd013/parts/6047fe34-d93c-4f50-8336-b70ef10cb4b2/modules/e1a23b06-329a-4684-a717-ad476f0d8dff/lessons/462c933d-9f24-42d3-8bdc-a08a5fc866e4/concepts/5ab4b122-83e6-436d-850f-9f4d26627fd9).
-HI
+
+[image0]: ./imgs/capstone.png "Stop Light"(https://www.dropbox.com/s/f6z111glk3xhoqh/capstone_01.mp4?dl=0)
+
+###Car at stop light
+![alt text][image0]
+
+
+
 ### Native Installation
 
 * Be sure that your workstation is running Ubuntu 16.04 Xenial Xerus or Ubuntu 14.04 Trusty Tahir. [Ubuntu downloads can be found here](https://www.ubuntu.com/download/desktop).
