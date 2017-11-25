@@ -4,3 +4,7 @@ build
 devel
 
 profile.tmp
+
+output_for_docker.txt
+run_cuda.sh
+

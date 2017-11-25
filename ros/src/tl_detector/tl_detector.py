@@ -10,6 +10,7 @@ from light_classification.tl_classifier import TLClassifier
 import tf
 import cv2
 import yaml
+import math
 
 STATE_COUNT_THRESHOLD = 3
 
@@ -33,7 +34,8 @@ class TLDetector(object):
         rely on the position of the light and the camera image to predict it.
         '''
         sub3 = rospy.Subscriber('/vehicle/traffic_lights', TrafficLightArray, self.traffic_cb)
-        sub6 = rospy.Subscriber('/image_color', Image, self.image_cb)
+        sub6 = rospy.Subscriber('/image_color', Image, self.image_cb)          ##SIMULATOR
+        #sub6 = rospy.Subscriber('/image_raw', Image, self.image_cb)             ##BAG
 
         config_string = rospy.get_param("/traffic_light_config")
         self.config = yaml.load(config_string)
@@ -101,7 +103,60 @@ class TLDetector(object):
 
         """
         #TODO implement
-        return 0
+
+        # initialize min distance
+        min_dist = float("inf")
+
+        pose1 = pose.position # Car state
+        ind = 0
+
+        # loop through waypoints to check for closest
+        for wp in self.waypoints.waypoints: 
+            ind += 1
+            pose2 = wp.pose.pose.position 
+            dist = self.distance(pose1, pose2)
+            if dist < min_dist:
+                min_dist = dist
+                closest_wp = wp
+                ind_closest = ind
+        return ind_closest, closest_wp 
+
+    def distance(self, pose1, pose2):
+        """ Return the distance between two points
+        """
+        xdiff = pose1.x - pose2.x
+        ydiff = pose1.y - pose2.y
+        zdiff = pose1.z - pose2.z
+        dist = math.sqrt(xdiff**2 + ydiff**2 + zdiff**2)
+        return dist
+
+    def get_closest_light(self, pose):
+        """Identifies the closest light waypoint to the given position
+            https://en.wikipedia.org/wiki/Closest_pair_of_points_problem
+        Args:
+            pose (Pose): position to match a waypoint to
+
+        Returns:
+            int: index of the closest waypoint in self.lights
+
+        """
+        # initialize min distance
+        min_dist = float("inf")
+
+        pose1 = pose.position # closest waypoint
+        ind = 0
+
+        # loop through light waypoints to check for closest
+        for wp in self.lights:
+            ind += 1    
+            pose2 = wp.pose.pose.position 
+            dist = self.distance(pose1, pose2)
+            if dist < min_dist:
+                min_dist = dist
+                closest_wp = wp
+                ind_closest = ind
+        return ind_closest 
+
 
     def get_light_state(self, light):
         """Determines the current color of the traffic light
@@ -131,20 +186,34 @@ class TLDetector(object):
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
 
         """
-        light = None
+        light = True
+
+        # If self.waypoints is not defined, return the default no light message
+        if (self.waypoints == None):
+            return -1, TrafficLight.UNKNOWN
 
         # List of positions that correspond to the line to stop in front of for a given intersection
         stop_line_positions = self.config['stop_line_positions']
+            
+        # Find closest waypoint to car
         if(self.pose):
-            car_position = self.get_closest_waypoint(self.pose.pose)
+            ind_wp_closest_to_car, wp_closest_to_car = self.get_closest_waypoint(self.pose.pose)
 
-        #TODO find the closest visible traffic light (if one exists)
 
+            # Find the closest visible traffic light (if one exists). 
+            # TODO    Make sure it is in front of car.
+            light_wp = self.get_closest_light(wp_closest_to_car.pose.pose)
+	
+    	# TODO(maybe) Find the closest stop line position to the light
+
+        # Check light state
         if light:
+            #state = light.state # for testing, CHANGE! 
             state = self.get_light_state(light)
+            rospy.logwarn("light waypoint %s, state %s", light_wp, state)
             return light_wp, state
-        self.waypoints = None
-        return -1, TrafficLight.UNKNOWN
+
+        return -1, state
 
 if __name__ == '__main__':
     try:

@@ -19,6 +19,7 @@ from io import BytesIO
 import base64
 
 import math
+import time
 
 TYPE = {
     'bool': Bool,
@@ -42,7 +43,9 @@ class Bridge(object):
         self.vel = 0.
         self.yaw = None
         self.angular_vel = 0.
+        self.old_data = None
         self.bridge = CvBridge()
+        self.prev_timestamp = 0.0
 
         self.callbacks = {
             '/vehicle/steering_cmd': self.callback_steering,
@@ -125,15 +128,39 @@ class Bridge(object):
             name,
             "world")
 
+    def time_to_update(self):
+        if self.prev_timestamp > 0.0 and time.time() - self.prev_timestamp < 0.05:
+            return False
+        return True
+
+    def data_has_not_updated(self, data):
+        if self.old_data == None:
+          self.old_data = data
+          return False
+    
+        if data['x'] != self.old_data['x'] or data['y'] != self.old_data['y'] or data['z'] != self.old_data['z'] or data['yaw'] != self.old_data['yaw']:
+          self.old_data = data
+          return False
+        return True
+          
     def publish_odometry(self, data):
+    
+        #avoid unnecessary messages
+        if self.data_has_not_updated(data) and not self.time_to_update():
+            return
+        #Update on a fixed rate
+        if not self.time_to_update():
+            return
+        self.prev_timestamp = time.time()          
         pose = self.create_pose(data['x'], data['y'], data['z'], data['yaw'])
 
         position = (data['x'], data['y'], data['z'])
         orientation = tf.transformations.quaternion_from_euler(0, 0, math.pi * data['yaw']/180.)
         self.broadcast_transform("base_link", position, orientation)
 
+        rospy.loginfo("current_pose %s %s %s",pose.header.stamp, pose.pose.position.x, pose.pose.position.y)
         self.publishers['current_pose'].publish(pose)
-        self.vel = data['velocity']* 0.44704
+        self.vel = data['velocity'] * 0.44704
         self.angular = self.calc_angular(data['yaw'] * math.pi/180.)
         self.publishers['current_velocity'].publish(self.create_twist(self.vel, self.angular))
 
@@ -173,11 +200,14 @@ class Bridge(object):
         self.publishers['dbw_status'].publish(Bool(data))
 
     def publish_camera(self, data):
+        if self.prev_timestamp > 0.0 and time.time() - self.prev_timestamp < 0.05:
+            return
         imgString = data["image"]
         image = PIL_Image.open(BytesIO(base64.b64decode(imgString)))
         image_array = np.asarray(image)
 
         image_message = self.bridge.cv2_to_imgmsg(image_array, encoding="rgb8")
+        image_message.header.stamp = rospy.Time.now()
         self.publishers['image'].publish(image_message)
 
     def callback_steering(self, data):
@@ -188,3 +218,4 @@ class Bridge(object):
 
     def callback_brake(self, data):
         self.server('brake', data={'brake': str(data.pedal_cmd)})
+

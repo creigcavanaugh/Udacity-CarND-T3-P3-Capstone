@@ -1,4 +1,14 @@
-
+ROS NOTES
+------------------------------------
+Start:  "roscore"
+List nodes: "rosnode list"
+List topics: "rostopic list"
+Topic info:  "rostopic info /topic"
+List mesg:   "rosmsg list"
+View mesg:   "rosmsg info <msg>"
+Echo mesg:   "rostopic echo <topic>"
+Publish:     pub1 = rospy.Publisher("/my_topic", message_type, queue_size=size)
+             pub1.publish(message)
 
 virtualbox mount host shared dir
 ------------------------------------

@@ -8,10 +8,11 @@ from flask import Flask, render_template
 
 from bridge import Bridge
 from conf import conf
+import rospy
 
 sio = socketio.Server()
 app = Flask(__name__)
-msgs = []
+msgs = {}
 
 dbw_enable = False
 
@@ -21,7 +22,8 @@ def connect(sid, environ):
 
 def send(topic, data):
     s = 1
-    msgs.append((topic, data))
+    rospy.loginfo("send %s",topic)
+    msgs[topic] = data
     #sio.emit(topic, data=json.dumps(data), skip_sid=True)
 
 bridge = Bridge(conf, send)
@@ -32,30 +34,43 @@ def telemetry(sid, data):
     if data["dbw_enable"] != dbw_enable:
         dbw_enable = data["dbw_enable"]
         bridge.publish_dbw_status(dbw_enable)
+        rospy.loginfo("publish dbw_enable %s",dbw_enable)
     bridge.publish_odometry(data)
+    if len(msgs) == 0:
+      return
+    rospy.loginfo("telemetry %s messages",len(msgs))
     for i in range(len(msgs)):
-        topic, data = msgs.pop(0)
+        topic, data = msgs.popitem()
         sio.emit(topic, data=data, skip_sid=True)
-
+  
 @sio.on('control')
 def control(sid, data):
     bridge.publish_controls(data)
 
 @sio.on('obstacle')
 def obstacle(sid, data):
-    bridge.publish_obstacles(data)
+#    bridge.publish_obstacles(data)
+#    rospy.loginfo("obstacle")
+    pass
+    
 
 @sio.on('lidar')
 def obstacle(sid, data):
-    bridge.publish_lidar(data)
+#    rospy.loginfo("lidar")
+#    bridge.publish_lidar(data)
+    pass
 
 @sio.on('trafficlights')
 def trafficlights(sid, data):
+#    rospy.loginfo("trafficlights")
     bridge.publish_traffic(data)
+#    pass
 
 @sio.on('image')
 def image(sid, data):
+#    rospy.loginfo("image")
     bridge.publish_camera(data)
+#    pass
 
 if __name__ == '__main__':
 
