@@ -89,7 +89,7 @@ class DBWNode(object):
 
     def reset(self):
         self.cte_counter = 0 
-	self.tot_cte = 0 
+        self.tot_cte = 0 
         self.twist_cmd = None
         self.current_velocity = None
         self.time_last_cmd = None
@@ -149,14 +149,14 @@ class DBWNode(object):
                         y.append(transformed_waypoint.pose.position.y)
                     i += 1
 
-		# Added protection for when x does not exist
+                # Added protection for when x does not exist
                 if x:
-		    coefficients = np.polyfit(x, y, 3)
+                    coefficients = np.polyfit(x, y, 3)
                     # We have to calculate the cte for a position ahead, due to delay
                     cte = np.polyval(coefficients, 0.7 * self.current_velocity.twist.linear.x)
-		else:
-		    # Maintain current cte (use 1 for mulitplier)
-		    cte = 1
+                else:
+                    # Maintain current cte (use 1 for mulitplier)
+                    cte = 1
                 cte *= abs(cte)
                 rospy.loginfo('cte: %s', cte)
                 self.tot_cte += abs(cte)
@@ -171,7 +171,7 @@ class DBWNode(object):
                                                                                 self.brake_deadband, cte)
                 self.publish(throttle_val, brake_val, steering_val)
                 
-	    else:
+            else:
                 rospy.loginfo("dbw_enable_status %s", self.dbw_enable_status)
                 self.reset()
 
