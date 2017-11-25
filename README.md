@@ -7,7 +7,9 @@ This is the project repo for the final project of the Udacity Self-Driving Car N
 [image0]: ./imgs/capstone.png "Stop Light"
 
 ### Car at stop light
-![alt text][image0](https://www.dropbox.com/s/f6z111glk3xhoqh/capstone_01.mp4?dl=0)
+![alt text][image0]
+
+[Sample video of car in simulator](https://www.dropbox.com/s/f6z111glk3xhoqh/capstone_01.mp4?dl=0)
 
 
 
