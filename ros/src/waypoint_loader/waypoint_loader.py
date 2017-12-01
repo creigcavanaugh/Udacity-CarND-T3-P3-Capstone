@@ -22,9 +22,12 @@ class WaypointLoader(object):
 
         self.pub = rospy.Publisher('/base_waypoints', Lane, queue_size=1, latch=True)
 
-        self.max_speed = self.kmph2mps(rospy.get_param('~max_speed'))
+        self.velocity = self.kmph2mps(rospy.get_param('~velocity'))
         self.new_waypoint_loader(rospy.get_param('~path'))
         rospy.spin()
+
+    def get_speed_limit(self):
+        return self.velocity
 
     def new_waypoint_loader(self, path):
         if os.path.isfile(path):
@@ -57,9 +60,10 @@ class WaypointLoader(object):
                 p.pose.pose.position.z = float(wp['z'])
                 q = self.quaternion_from_yaw(float(wp['yaw']))
                 p.pose.pose.orientation = Quaternion(*q)
-                p.twist.twist.linear.x = self.mps2kmph(self.max_speed)
-
+                p.twist.twist.linear.x = self.mps2kmph(self.velocity)
+                # p.twist.twist.linear.velocity = self.velocity
                 waypoints.append(p)
+
         return self.decelerate(waypoints)
 
     def distance(self, p1, p2):

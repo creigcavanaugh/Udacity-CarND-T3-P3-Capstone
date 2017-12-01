@@ -1,4 +1,3 @@
-
 MIN_NUM = float('-inf')
 MAX_NUM = float('inf')
 
@@ -24,7 +23,7 @@ class PID(object):
         derivative = (error - self.last_error) / sample_time;
 
         val = self.kp * error + self.ki * self.int_val + self.kd * derivative;
-        #val = max(self.min, min(y, self.max))
+        # val = max(self.min, min(y, self.max))
 
         if val > self.max:
             val = self.max

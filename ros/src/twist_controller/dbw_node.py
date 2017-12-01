@@ -88,8 +88,8 @@ class DBWNode(object):
         self.loop()
 
     def reset(self):
-        self.cte_counter = 0 
-        self.tot_cte = 0 
+        self.cte_counter = 0
+        self.tot_cte = 0
         self.twist_cmd = None
         self.current_velocity = None
         self.time_last_cmd = None
@@ -129,6 +129,11 @@ class DBWNode(object):
 
             # Due to race conditions, we need to store the waypoints temporary
             temp_waypoints = copy.deepcopy(self.waypoints)
+            if temp_waypoints == None:
+                wp_len = 0
+            else:
+                wp_len = len(temp_waypoints.waypoints)
+            rospy.loginfo('waypoints size: ' + str(wp_len))
             # no need to test time_last_cmd since it is assigned together with twist_cmd
             if temp_waypoints != None and self.twist_cmd != None and self.current_velocity != None:
 
@@ -170,7 +175,6 @@ class DBWNode(object):
                                                                                 self.dbw_enable_status,
                                                                                 self.brake_deadband, cte)
                 self.publish(throttle_val, brake_val, steering_val)
-                
             else:
                 rospy.loginfo("dbw_enable_status %s", self.dbw_enable_status)
                 self.reset()
